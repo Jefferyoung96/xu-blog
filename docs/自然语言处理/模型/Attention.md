@@ -1,3 +1,7 @@
+---
+typora-root-url: ../../../
+---
+
 # Attention
 
 ## 简介
@@ -5,14 +9,10 @@ Attention 机制类似于人类的视觉注意力，从众多信息中选择出�
 
 ![人类视觉注意力](/assets/images/nlp/attention/人类视觉注意力.jpg)
 <center>人类视觉注意力</center>
-
 ![nlp中的注意力](/assets/images/nlp/attention/nlp中的注意力.jpg)
 <center>nlp中的注意力</center>
-
 ![图像中的注意力](/assets/images/nlp/attention/图像中的注意力.jpg)
 <center>图像中的注意力</center>
-
-
 ## 来源
 Attention是一种用于提升基于RNN（LSTM或GRU）的 Encoder-Decoder 模型的效果的机制。
 
@@ -23,14 +23,10 @@ Attention是一种用于提升基于RNN（LSTM或GRU）的 Encoder-Decoder 模�
 
 ![原始seq2seq](/assets/images/nlp/attention/原始seq2seq.png)
 <center>原始seq2seq</center>
-
 ![传统seq2seq结构](/assets/images/nlp/attention/传统seq2seq结构.jpg)
 <center>传统seq2seq结构</center>
-
 ![抽象的Encoder-Decoder框架](/assets/images/nlp/attention/抽象的Encoder-Decoder框架.jpg)
 <center>抽象的Encoder-Decoder框架</center>
-
-
 2015年，Dzmitry Bahdanau等人在《Neural machine translation by jointly learning to align and translate》提出了Attention Mechanism，用于对输入X的不同部分赋予不同的权重，进而实现软区分的目的。Minh-Thang Luong 等人在《Effective Approaches to Attention-based Neural Machine Translation》也提出了类似的机制。
 
 
@@ -40,7 +36,6 @@ Dzmitry Bahdanau等人在论文《Neural Machine Translation by Jointly Learning
 
 ![Attention 图解](/assets/images/nlp/attention/attention.jpg)
 <center>Attention 图解</center>
-
 图中是模型源句子$(x_1,x_2,\cdots,x_T)$生成第$t$个目标词汇$y_t$时的示意图。
 
 在预测第$t$个输出时，我们先利用上一步的隐状态$s_{t-1}$计算出于源句子中各个$h_j$的得分：
@@ -88,11 +83,8 @@ Minh-Thang Luong 等人在论文《Effective Approaches to Attention-based Neura
 
 ![luong的全局attention模型](/assets/images/nlp/attention/luong的全局attention模型.png)
 <center>luong的全局attention模型</center>
-
-
 ![luong的局部attention模型](/assets/images/nlp/attention/luong的局部attention模型.png)
 <center>luong的局部attention模型</center>
-
 全局 attention 的计算过程为：
 
 1. 对齐(获取注意力权重)
@@ -148,7 +140,6 @@ $$
 
 ![luong注意力详细图解](/assets/images/nlp/attention/luong注意力详细图解.jpg)
 <center>luong注意力详细图解</center>
-
 ## Attention 机制的本质思想
 
 把 Attention 机制从 Encoder-Decoder 框架中剥离，并进一步抽象，可以更容易看懂 Attention 机制的本质思想
@@ -169,7 +160,6 @@ Attention机制可以看做是一种软寻址（Soft Addressing)。$Source$可�
 
 ![attention计算过程](/assets/images/nlp/attention/attention计算过程.jpg)
 <center>attention计算过程</center>
-
 1. 第一阶段：计算 $Query$ 和 $Key$ 的相似性
 
 在第一个阶段，可以引入不同的函数和计算机制，根据 $Query$ 和某个 $Key_i$，计算两者的相似性或者相关性，最常见的方法包括：
@@ -241,7 +231,6 @@ Local Attention是一种介于Kelvin Xu所提出的Soft Attention和Hard Attenti
 
 ![local attention](/assets/images/nlp/attention/local_attention.jpg)
 <center>global attention</center>
-
 Local Attention 首先会为decoder端当前的词，预测一个source端对齐位置（aligned position)$p_t$，然后基于$p_t$选择一个窗口，用于计算背景向量$c_t$。公式如下：
 
 $$
@@ -264,7 +253,6 @@ Self Attention与传统的Attention机制非常的不同：传统的Attention是
 
 ![self attention](/assets/images/nlp/attention/self_attention.jpg)
 <center>self attention</center>
-
 self attention 更相信的内容请参考[Transformer](/documents/模型/Transformer.md)，self attention 中也涉及到 Multi-Head Attention
 
 4. Hierarchical Attention
@@ -274,7 +262,7 @@ Zichao Yang等人在论文《Hierarchical Attention Networks for Document Classi
 
 ![分层注意力机制结构示意图](/assets/images/nlp/han/HAN.png)
 <center>分层注意力机制结构示意图</center>
-具体内容可参考[HAN](/documents/模型/HAN.md)
+具体内容可参考[HAN(/documents/模型/HAN.md)
 
 ---
 **参考**：

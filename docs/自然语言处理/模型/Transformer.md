@@ -1,3 +1,6 @@
+---
+typora-root-url: ../../../
+---
 
 # Transformer
 
@@ -18,30 +21,25 @@ Transformer中的Attention机制，将序列中的任意两个位置之间的距
 
 ![the_transformer_3](/assets/images/nlp/transformer/the_transformer_3.png)
 <center>图1：Transformer用于机器翻译</center>
-
 Transformer本质上是一个Encoder-Decoder的结构。如图2：
 
 ![The_transformer_encoders_decoders](/assets/images/nlp/transformer/The_transformer_encoders_decoders.png)
 <center>图2：Transformer的Encoder-Decoder结构</center>
-
 在论文中，编码组件由6个编码器堆叠而成，解码组件也有6个解码器堆叠而成，编码组件的输出会作为解码组件的输入。如图3：
 
 
 ![The_transformer_encoder_decoder_stack](/assets/images/nlp/transformer/The_transformer_encoder_decoder_stack.png)
 <center>图3：Transformer的Encoders和Decoders的堆叠结构</center>
-
 每个编码器的结构都完全相同，但并不共享参数，每个编码器由两部分组成：Self-Attention层和前向网络层，如图4：
 
 ![Transformer_encoder](/assets/images/nlp/transformer/Transformer_encoder.png)
 <center>图4：编码器组成结构</center>
-
 Self-Attention层可以在编码某个词时，关注到序列中其他单词的影响，后续会讲到。
 
 解码器同样有这些子层，但两个子层间增加了attention层，用于关注到输入句子的相关部分。其结构如图5：
 
 ![Transformer_decoder](/assets/images/nlp/transformer/transformer_decoder.png)
 <center>图5：解码器组成结构</center>
-
 ### 数据流动
 
 现在我们看看数据是如何流经各个组件并输出的。
@@ -50,12 +48,10 @@ Self-Attention层可以在编码某个词时，关注到序列中其他单词的
 
 ![embeddings](/assets/images/nlp/transformer/embeddings.png)
 <center>图6：embeddings</center>
-
 词的向量化仅仅发生在最底层的编码器的输入时，这样每个编码器的都会接收到一个list（每个元素都是512维的词向量），只不过其他编码器的输入是前个编码器的输出。list的尺寸是可以设置的超参，通常是训练集的最长句子的长度。为了画图更简单，我们使用更简单的例子来表示接下来的过程，如图7：
 
 ![encoder_with_tensors_2](/assets/images/nlp/transformer/encoder_with_tensors_2.png)
 <center>图7：输入数据经embeddings后的流动</center>
-
 这里能看到Transformer的一个关键特性，每个位置的词仅仅流过它自己的编码器路径。在self-attention层中，这些路径两两之间是相互依赖的。前向网络层则没有这些依赖性，但这些路径在流经前向网络时可以并行执行。
 
 ### Self-Attention 思路
@@ -66,7 +62,6 @@ Self-Attention层可以在编码某个词时，关注到序列中其他单词的
 
 ![transformer_self-attention_visualization](/assets/images/nlp/transformer/transformer_self-attention_visualization.png)
 <center>图8：经典Attention可视化示例图</center>
-
 当编码"it"时（编码器的最后层输出），部分attention集中于"the animal"，并将其表示合并进入到“it”的编码中
 
 ### Self-Attention 计算详情
@@ -78,13 +73,12 @@ $$
 q_i = x_i W^Q \\
 k_i = x_i W^K \\
 v_i = x_i W^V \\
-$$  
+$$
 
 图示如图9：
 
 ![transformer_self_attention_vectors](/assets/images/nlp/transformer/transformer_self_attention_vectors.png)
 <center>图9：Q，K，V的计算示例图</center>
-
 2. 计算 attention 分值  
 以“Thinking Matchines”这句话为例，对于第一个词“Thinking”，我们需要计算“Thinking”和每个词的评估分，来决定编码“Thinking”时需要对每个词的关注度。
 
@@ -94,7 +88,6 @@ $$
 
 ![transformer_self_attention_score](/assets/images/nlp/transformer/transformer_self_attention_score.png)
 <center>图10：self_attention_score</center>
-
 3. 除以8（=$\sqrt{dim_{key}}$）,这样梯度会更稳定。  
 如果Q，K的维度过大，那么他们的内积值也将会很大，经过后面的softmax后，梯度更新时对应的梯度将会很小。为了抵消这种影响，所以需要将内积除以$\sqrt{dim_{key}}$
 4. 进行softmax，归一化分值使得全为整数且和为1。
@@ -105,17 +98,13 @@ $$
 
 ![self-attention-output](/assets/images/nlp/transformer/self-attention-output.png)
 <center>图11：self_attention_score</center>
-
 我们可以把所有输入词向量合并成输入矩阵X，这样整个计算过程可以用矩阵形式表示，如图12，13：
 
 
 ![self-attention-matrix-calculation](/assets/images/nlp/transformer/self-attention-matrix-calculation.png)
 <center>图12：self_attention 矩阵运算示意图1</center>
-
 ![self-attention-matrix-calculation-2](/assets/images/nlp/transformer/self-attention-matrix-calculation-2.png)
 <center>图13：self_attention 矩阵运算示意图2</center>
-
-
 ### 多头注意力机制（Multi-Head Attention）
 
 论文中给self-attention进一步增加了multi-headed机制，来提高attention层的效果：
@@ -124,29 +113,24 @@ $$
 
 ![transformer_attention_heads_qkv](/assets/images/nlp/transformer/transformer_attention_heads_qkv.png)
 <center>图14：多头Q,K,V</center>
-
 如果我们计算multi-headed self-attention的，分别有八组不同的Q、K、V 矩阵，我们得到八个不同的矩阵。如图15：
 
 ![transformer_attention_heads_z](/assets/images/nlp/transformer/transformer_attention_heads_z.png)
 <center>图15：多头得到多个输出结果Z</center>
-
 但我们的前向网络希望输入的是一个矩阵，而不能接受八个矩阵。所以需要将八个矩阵合并成一个矩阵。如图16：
 
 ![transformer_attention_heads_weight_matrix_o](/assets/images/nlp/transformer/transformer_attention_heads_weight_matrix_o.png)
 <center>图16：多头结果转换为一个矩阵</center>
-
 完整过程如图17：
 
 
 ![transformer_multi-headed_self-attention-recap](/assets/images/nlp/transformer/transformer_multi-headed_self-attention-recap.png)
 <center>图17：多头注意力完整运算示意图</center>
-
 加入attention heads后，看看下面的例子图18：
 
 
 ![transformer_self-attention_visualization_2](/assets/images/nlp/transformer/transformer_self-attention_visualization_2.png)
 <center>图18：多头注意力例子</center>
-
 编码"it"时，一个attention head集中于"the animal"，另一个head集中于“tired”，某种意义上讲，模型对“it”的表达合成了的“animal”和“tired”两者
 
 ### 使用位置编码表示序列顺序
@@ -160,7 +144,6 @@ $$
 
 ![transformer_positional_encoding_vectors.png](/assets/images/nlp/transformer/transformer_positional_encoding_vectors.png)
 <center>图19：Position Embedding</center>
-
 论文给出的编码公式如下：
 
 $$
@@ -179,24 +162,18 @@ $$
 
 ![transformer_resideual_layer_norm.png](/assets/images/nlp/transformer/transformer_resideual_layer_norm.png)
 <center>图20：残差</center>
-
-
 ![transformer_resideual_layer_norm_2.png](/assets/images/nlp/transformer/transformer_resideual_layer_norm_2.png)
 <center>图21：可视化向量的残差示意图</center>
-
 在解码器中也是如此，假设两层编码器+两层解码器组成Transformer，其结构如图22：
 
 ![transformer_resideual_layer_norm_3.png](/assets/images/nlp/transformer/transformer_resideual_layer_norm_3.png)
 <center>图22：完整的编码解码示意图</center>
-
 ### 解码器
 
 在解码器中的self attention层与编码器中稍有不同。由于在机器翻译中，解码过程是一个顺序操作的过程，也就是当解码第$k$个特征向量时，我们只能看到第$k-1$及其之前的解码结果。在softmax之前，我们通过遮挡未来位置（将他们设置为-inf）来实现。论文中把这种情况下的multi-head attention叫做masked multi-head attention。如图23：
 
 ![the-annotated-transformer_14_0.png](/assets/images/nlp/transformer/the-annotated-transformer_14_0.png)
 <center>图23：论文中的示意图</center>
-
-
 解码器也比编码器多了个encoder-cecoder attention,他的工作方式与multi-head self-attention是一样的，不同的是，在encoder-cecoder attention中，query矩阵是由前层的输出转化得到，而key和value矩阵是由编码器最后的输出转化得到。
 
 ### 整个编解码过程
@@ -206,14 +183,11 @@ $$
 
 ![transformer_decoding_1](/assets/images/nlp/transformer/transformer_decoding_1.gif)
 <center>图24：编码过程</center>
-
-
 解码的每一步输出一个元素作输出序列。一直重复直到一个特殊符号出现表示解码器完成了翻译输出。每一步的输出被喂到下一个解码器中。正如编码器的输入所做的处理，对解码器的输入增加位置向量。如图25：
 
 
 ![transformer_decoding_2](/assets/images/nlp/transformer/transformer_decoding_2.gif)
 <center>图25：解码过程</center>
-
 ### 最后的线性变换及softmax层
 
 解码器最后输出浮点向量，如何将它转成词？这是最后的线性层和softmax层的主要工作。
@@ -224,7 +198,6 @@ softmax层将这些分数转换成概率值（都是正值，且加和为1），
 
 ![transformer_decoder_output_softmax](/assets/images/nlp/transformer/transformer_decoder_output_softmax.png)
 <center>图26：解码后的输出变换</center>
-
 ### 损失函数
 由于模型参数是随机初始化的，未训练的模型输出随机值。我们可以对比真实输出，然后利用误差后传调整模型权重，使得输出更接近与真实输出。如何对比两个概率分布呢？简单采用 cross-entropy或者Kullback-Leibler divergence中的一种。
 
@@ -249,7 +222,6 @@ softmax层将这些分数转换成概率值（都是正值，且加和为1），
 
 
 待写
-
 
 
 
