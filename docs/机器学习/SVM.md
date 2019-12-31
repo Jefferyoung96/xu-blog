@@ -1,5 +1,7 @@
-# 支持向量机（SVM）
 ---
+typora-root-url: ../../
+---
+# 支持向量机（SVM）
 
 ## 简介
 
@@ -118,7 +120,7 @@ $$
 
 当目标函数$f(w)$是二次函数且约束函数$g_i(w)$是仿射函数时，上述凸最优化问题成为凸二次规划问题。
 
-## 间隔最大化
+### 间隔最大化
 
 支持向量机的目的就是找到让几何间隔最大的分离超平面，不仅将正负实例点分开，而且对最难分的点，也让他们有足够大的确信度将其分开，以便具有更好的泛化能力。
 
@@ -162,7 +164,7 @@ $$
 
 线性可分训练数据集的最大间隔分类超平面是存在且唯一的，且最优解$(w^*,b^*)$必满足$w^* \ne 0$。证明详见李航《统计学习方法》100-101页
 
-## 支持向量和间隔边界
+### 支持向量和间隔边界
 
 线性可分情况下，训练数据集的样本点中与分离超平面距离最近的样本点的实例称为支持向量，支持向量是使约束条件成立的点，即
 
@@ -390,7 +392,7 @@ $$
 由此可看出，分类决策函数只依赖于输入$x$和训练样本输入的内积。
 
 
-## 线性可分支持向量机学习算法
+### 线性可分支持向量机学习算法
 
 输入：线性可分训练集$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$,其中 $x_i \in \mathcal{X}=\mathrm{R}^n,y_i \in \mathcal{Y}=\{+1,-1\},i=1,2,\cdots,N$;
 
@@ -433,8 +435,6 @@ f(x) = sign\left(w^*\cdot x + b^* \right)
 $$
 
 由上面的式子可以看出，$w^*$和$b^*$只依赖于训练数据中对应于$\alpha_i^*>0$的样本点，而其他样本点对$w^*$和$b^*$没有影响。训练数据中对应于$\alpha_i^*>0$的实例点$x_i \in \mathrm{R}^n$称为支持向量。
-
-## 线性可分支持向量机例子
 
 ## 线性支持向量机
 
@@ -595,7 +595,7 @@ $$
 
 进而得到分割超平面和决策函数
 
-## 线性支持向量机学习算法
+### 线性支持向量机学习算法
 
 输入：训练数据集$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$,其中 $x_i \in \mathcal{X}=\mathrm{R}^n,y_i \in \mathcal{Y}=\{+1,-1\},i=1,2,\cdots,N$;
 
@@ -757,7 +757,7 @@ $$
 ![核函数](/assets/images/机器学习/svm/核函数.png)
 <center>核函数</center>
 
-## 非线性支持向量机学习算法
+### 非线性支持向量机学习算法
 
 输入：训练数据集$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$,其中 $x_i \in \mathcal{X}=\mathrm{R}^n,y_i \in \mathcal{Y}=\{+1,-1\},i=1,2,\cdots,N$;
 
@@ -790,16 +790,452 @@ $$
 
 当$K(x,z)$是正定核函数时，上述问题是凸二次规划问题，解是存在的。
 
-## 序列最小最优化算法（sequential minimal optimization,SMO)
+## SMO （序列最小最优化算法，sequential minimal optimization)
 
+根据前面的介绍，我们发现，问题最终归结为求解对偶问题的最优解，即：
+
+$$
+\begin{aligned}
+    
+\mathop{\min}_{\alpha}  &\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^N \alpha_i \alpha_j y_i y_j K(x_i, x_j) -\sum_{i=1}^N \alpha_i\\\\
+s.t.\quad &\sum_{i=1}^N \alpha_i y_i = 0 \\\\
+&0 \le \alpha_i \le C, i=1,2,\cdots,N
+
+\end{aligned}
+$$
+
+这是一个凸二次规划问题。凸二次规划问题具有全局最优解，有许多最优化算法可以用来求解该问题。但当训练样本容量很大时，这些算法往往变得很低效，以致无法使用，而序列最小最优化（SMO）算法即是一种快速的求解算法。
+
+SMO 算法是一种启发式算法，基本思路是：如果所有变量的解都满足此最优化问题的KKT条件，那么这个最优化问题的解就得到了。可以想象，选择两个变量，固定其他变量，针对这两个变量构建一个二次规划问题，其最优解也会让原始问题的目标函数变得更小。重要的是，这时子问题可以通过解析方法求解，大大提高计算速度。子问题有两个变量，一个是违反KKT条件最严重的，另一个由等式约束条件自动确定。如此，SMO算法将原问题不断分解为子问题求解，进而达到求解原问题的目的。
+
+子问题虽然有两个变量，但因为有等式约束,所以自由变量相当于只有一个，因此，子问题中同时更新了两个变量。
+
+整个SMO算法包括两部分：
+1. 求解两个变量的二次规划的解析方法
+2. 选择变量的启发式方法。
+
+### 两个变量的二次规划的求解方法
+
+不失一般性，假设选择的两个变量是$\alpha_1,\alpha_2$，其他变量$\alpha_i(i=3,4,\cdots,N)$固定。对偶优化问题的子问题变为：
+
+$$
+\begin{aligned}
+
+\mathop{\min}_{\alpha_1,\alpha_2}  W(\alpha_1,\alpha_2)&=\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^N \alpha_i \alpha_j y_i y_j K(x_i, x_j) -\sum_{i=1}^N \alpha_i\\\\
+&=\frac{1}{2}K_{11}\alpha_1^2 + \frac{1}{2}K_{22}\alpha_2^2 + y_1y_2K_{12}\alpha_1\alpha_2 \\\\
+&\qquad + y_1\alpha_1\sum_{i=3}^N y_i\alpha_i K_{i1} + y_2\alpha_2\sum_{i=3}^N y_i\alpha_i K_{i2} \\\\
+&\qquad + \frac{1}{2}\sum_{i=3}^N\sum_{j=3}^N \alpha_i \alpha_j y_i y_j K(x_i, x_j) -(\alpha_1+\alpha_2)-\sum_{i=3}^N \alpha_i \\\\
+
+s.t.\quad & \alpha_1y_1+\alpha_2y_2=-\sum_{i=3}^N y_i\alpha_i=\varsigma
+\\\\
+&0 \le \alpha_i \le C, i=1,2
+\end{aligned}
+$$
+其中，$K_{ij}=K(x_i,x_j),i,j=1,2,\cdots,N$,$\varsigma$为常数，去掉目标函数中的常数项，最终问题为：
+
+
+$$
+\begin{aligned}
+
+\mathop{\min}_{\alpha_1,\alpha_2}  W(\alpha_1,\alpha_2)&=\frac{1}{2}K_{11}\alpha_1^2 + \frac{1}{2}K_{22}\alpha_2^2 + y_1y_2K_{12}\alpha_1\alpha_2 \\\\
+&\qquad + y_1\alpha_1\sum_{i=3}^N y_i\alpha_i K_{i1} + y_2\alpha_2\sum_{i=3}^N y_i\alpha_i K_{i2} \\\\
+&\qquad -(\alpha_1+\alpha_2) \\\\
+
+s.t.\quad & \alpha_1y_1+\alpha_2y_2=-\sum_{i=3}^N y_i\alpha_i=\varsigma
+\\\\
+&0 \le \alpha_i \le C, i=1,2
+\end{aligned}
+$$
+
+
+首先分析约束条件，在约束条件下求极小。考虑到$y_1,y_2$只能取$\pm 1$,所以$\alpha_1,\alpha_2$的等式约束是斜率为$\pm 1$的线性关系。而不等式约束则是把他们限制在$[0,C]\times [0,C]$的盒子里，我们可以用二维空间中的图像表示约束，横轴表示$\alpha_1$，纵轴表示$\alpha_2$。
+
+
+![smo约束1](/assets/images/机器学习/svm/smo约束1.png)
+<center>smo约束1</center>
+
+![smo约束2](/assets/images/机器学习/svm/smo约束2.png)
+<center>smo约束2</center>
+
+因为等式约束的原因，最优化问题实质上是单变量的最优化问题，不妨考虑为变量$\alpha_2$的最优化问题。假设问题初始可行解为$\alpha_1^{\mathrm{old}},\alpha_2^{\mathrm{old}}$,最优解为$\alpha_1^{\mathrm{new}},\alpha_2^{\mathrm{new}}$,并假设只有等式约束时的最优解（沿着约束方向未经剪辑时）为$\alpha_2^{\mathrm{new,unc}}$
+
+由于$\alpha_2^{\mathrm{new}}$需要满足不等式约束，记最优解$\alpha_2^{\mathrm{new}}$的取值范围最小为$L$,最大为$H$,由图可以看出$\alpha_2^{\mathrm{new}}$的取值范围为：
+
+当$y_1 \ne y_2$时：
+$$
+\begin{aligned}
+L &= \max(0,-k) =\max(0,\alpha_2^{\mathrm{old}}-\alpha_1^{\mathrm{old}})\\\\
+H &= \min(C,C-k) = \min(C,C+\alpha_2^{\mathrm{old}}-\alpha_1^{\mathrm{old}})
+\end{aligned}
+$$
+
+当$y_1 = y_2$时：
+$$
+\begin{aligned}
+L &= \max(0,k-C) = \max(0,\alpha_2^{\mathrm{old}}+\alpha_1^{\mathrm{old}}-C) \\\\
+H &= \min(C,k)= \min(C,\alpha_2^{\mathrm{old}}+\alpha_1^{\mathrm{old}})
+\end{aligned}
+$$
+
+下面，我们首先求解等式约束下$\alpha_2$的最优解：$\alpha_2^{\mathrm{new,unc}}$,然后再求剪辑后的解$\alpha_2^{\mathrm{new}}$。
+
+引入记号$v_i=\sum_{i=3}^Ny_i\alpha_iK_{ij},i=1,2$.则目标函数可写成：
+
+$$
+\begin{aligned}
+    
+W(\alpha_1,\alpha_2) = &\frac{1}{2}K_{11}\alpha_1^2 + \frac{1}{2}K_{22}\alpha_2^2 + y_1y_2K_{12}\alpha_1\alpha_2 \\\\
+ &-(\alpha_1+\alpha_2)+y_1v_1\alpha_1+y_2v_2\alpha_2
+\end{aligned}
+$$
+由$\alpha_1y_1 = \varsigma-\alpha_2y_2$及$y_i^2=1$,可得：
+
+$$
+\alpha_1y_1y_1 = (\varsigma-\alpha_2y_2)y_1 \\\\
+\alpha_1 = (\varsigma-\alpha_2y_2)y_1 
+$$
+则
+
+$$
+
+\begin{aligned}
+    
+W(\alpha_2) = &\frac{1}{2}K_{11}(\varsigma-\alpha_2y_2)^2 + \frac{1}{2}K_{22}\alpha_2^2 + y_2K_{12}(\varsigma-\alpha_2y_2)\alpha_2 \\\\
+&-(\varsigma-\alpha_2y_2)y_1-\alpha_2+v_1(\varsigma-\alpha_2y_2)+y_2v_2\alpha_2
+\end{aligned}
+$$
+
+对$\alpha_2$求导
+
+$$
+\begin{aligned}
+    
+\frac{\partial W}{\partial \alpha_2} = & K_{11}(\varsigma-\alpha_2y_2)(-y_2)+ K_{22}\alpha_2\\\\
+& +y_2K_{12}(-y_2)\alpha_2 +  y_2K_{12}(\varsigma-\alpha_2y_2) \\\\
+& + y_1y_2-1-v_1y_2+y_2v_2 \\\\
+=& -K_{11}\varsigma y_2 + K_{11}\alpha_2+ K_{22}\alpha_2 \\\\
+& -K_{12}\alpha_2 + y_2K_{12}\varsigma - K_{12}\alpha_2 \\\\
+& + y_1y_2-1-v_1y_2+y_2v_2 \\\\
+=& K_{11}\alpha_2+ K_{22}\alpha_2-2K_{12}\alpha_2 \\\\
+& -K_{11}\varsigma y_2 + K_{12}\varsigma y_2 + y_1y_2-1-v_1y_2+y_2v_2
+\end{aligned}
+$$
+
+令其为0，得到
+
+$$
+\begin{aligned}
+(K_{11}+ K_{22}-2K_{12})\alpha_2 = & 1-y_1y_2+K_{11}\varsigma y_2-K_{12}\varsigma y_2 +v_1y_2-y_2v_2 \\\\
+=&y_2(y_2-y_1+K_{11}\varsigma -K_{12}\varsigma +v_1-v_2) 
+\end{aligned}
+$$
+
+我们记分离超平面：
+
+$$
+g(x) = \sum_{j=1}^N \alpha_jy_jK(x_j,x)+b
+$$
+令
+
+$$
+E_i=g(x_i)-y_i = \sum_{j=1}^N \alpha_jy_jK(x_j,x_i)+b-y_i,\qquad i=1,2
+$$
+
+当$i=1,2$时，$E_i$为函数$g(x)$对输入$x_i$的预测值与真实输出$y_i$之差。
+
+而
+
+$$
+v_i=\sum_{i=3}^Ny_i\alpha_iK_{ij} = g(x_i)-\sum_{j=1}^2 \alpha_jy_jK(x_j,x_i) - b,\qquad i=1,2
+$$
+
+则：
+
+$$
+\begin{aligned}
+(K_{11}+ K_{22}-2K_{12})\alpha_2 = &y_2(y_2-y_1+K_{11}\varsigma -K_{12}\varsigma +v_1-v_2) \\\\
+=&y_2[ y_2-y_1+K_{11}\varsigma-K_{12}\varsigma \\\\
+&+ (g(x_1)-\sum_{j=1}^2 \alpha_j^{\mathrm{old}}y_jK_{1j} - b) \\\\
+&-(g(x_2)-\sum_{j=1}^2 \alpha_j^{\mathrm{old}}y_jK_{2j} - b)]
+\end{aligned}
+$$
+
+因为
+
+$$
+\alpha_1y_1+\alpha_2y_2=-\sum_{i=3}^N y_i\alpha_i=\varsigma
+$$
+所以
+
+$$
+\varsigma = \alpha_1^{\mathrm{old}}y_1+\alpha_2^{\mathrm{old}}y_2
+$$
+
+因此：
+
+$$
+\begin{aligned}
+(K_{11}+ K_{22}-2K_{12})\alpha_2^{\mathrm{new,unc}} = &y_2[ y_2-y_1+K_{11}\varsigma-K_{12}\varsigma \\\\
+&+ (g(x_1)-\sum_{j=1}^2 \alpha_j^{\mathrm{old}}y_jK_{1j} - b) \\\\
+&-(g(x_2)-\sum_{j=1}^2 \alpha_j^{\mathrm{old}}y_jK_{2j} - b)] \\\\
+=&y_2[ y_2-y_1+K_{11}(\alpha_1^{\mathrm{old}}y_1+\alpha_2^{\mathrm{old}}y_2)-K_{12}(\alpha_1^{\mathrm{old}}y_1+\alpha_2^{\mathrm{old}}y_2) \\\\
+&+ (g(x_1)-\alpha_1^{\mathrm{old}}y_1K_{11}-\alpha_2^{\mathrm{old}}y_2K_{12} - b) \\\\
+&-(g(x_2)- \alpha_1^{\mathrm{old}}y_1K_{21}-\alpha_2^{\mathrm{old}}y_2K_{22} - b)] \\\\
+=&y_2[ y_2-y_1+\alpha_1^{\mathrm{old}}y_1K_{11}+\alpha_2^{\mathrm{old}}y_2K_{11}-\alpha_1^{\mathrm{old}}y_1K_{12}-\alpha_2^{\mathrm{old}}y_2K_{12} \\\\
+&+ g(x_1)-\alpha_1^{\mathrm{old}}y_1K_{11}-\alpha_2^{\mathrm{old}}y_2K_{12} - b \\\\
+&-g(x_2)+ \alpha_1^{\mathrm{old}}y_1K_{21}+\alpha_2^{\mathrm{old}}y_2K_{22} + b] \\\\
+=&y_2[ y_2-y_1+\alpha_2^{\mathrm{old}}y_2K_{11}-\alpha_2^{\mathrm{old}}y_2K_{12} \\\\
+&+ g(x_1)-\alpha_2^{\mathrm{old}}y_2K_{12} - b \\\\
+&-g(x_2)+\alpha_2^{\mathrm{old}}y_2K_{22} + b] \\\\
+=&y_2[ \alpha_2^{\mathrm{old}}y_2(K_{11}+K_{22}-2K_{12})+y_2-y_1+ g(x_1)-g(x_2)] \\\\
+=&y_2[ \alpha_2^{\mathrm{old}}y_2(K_{11}+K_{22}-2K_{12})+E_1-E_2] \\\\
+=&\alpha_2^{\mathrm{old}}(K_{11}+K_{22}-2K_{12})+y_2(E_1-E_2)
+\end{aligned}
+$$
+
+令$\eta=K_{11}+K_{22}-2K_{12}$,代入上式，得到：
+
+$$
+\eta \alpha_2^{\mathrm{new,unc}} = \eta\alpha_2^{\mathrm{old}} + y_2(E_1-E_2) \\\\
+\alpha_2^{\mathrm{new,unc}} = \alpha_2^{\mathrm{old}} + \frac{y_2(E_1-E_2)}{\eta }
+$$
+
+将其限制在区间$[L,H]$内，得到：
+
+$$
+\alpha_2^{\mathrm{new}}  = 
+\begin{cases}
+\begin{aligned}
+&H, &\alpha_2^{\mathrm{new,unc}} >H \\\\
+&\alpha_2^{\mathrm{new,unc}} ,&L \le \alpha_2^{\mathrm{new,unc}}  \le H \\\\
+&L,&\alpha_2^{\mathrm{new,unc}}  < L
+\end{aligned}
+\end{cases}
+$$
+
+由$\alpha_2^{\mathrm{new,unc}}$求得
+
+$$
+\begin{aligned}
+    
+&\alpha_1^{\mathrm{new}}y_1 + \alpha_2^{\mathrm{new}}y_2 = \varsigma = \alpha_1^{\mathrm{old}}y_1 + \alpha_2^{\mathrm{old}}y_2 \\\\ 
+
+&\alpha_1^{\mathrm{new}} + \alpha_2^{\mathrm{new}}y_1y_2 = \alpha_1^{\mathrm{old}} + \alpha_2^{\mathrm{old}}y_1y_2 \\\\ 
+&\alpha_1^{\mathrm{new}} = \alpha_1^{\mathrm{old}} + y_1y_2(\alpha_2^{\mathrm{old}}- \alpha_2^{\mathrm{new}}) \\\\ 
+\end{aligned}
+$$
+
+### 变量的选择方法
+
+SMO 算法在每个子问题中需要选择两个变量优化，第一个变量的选择，需要选取训练集上违反KKT条件最严重的样本点。一般情况下，先选择$0<\alpha_i<C$的样本点（即支持向量），只有当所有的支持向量都满足KKT条件的时候，才会选择其他样本点。因为此时违反KKT条件越严重，在经过一次优化后，会让变量$\alpha_i$尽可能的发生变化，从而可以以更少的迭代次数让模型达到$g(x)$目标条件。具体地，检验训练样本点$(x_i,y_i)$是否满足KKT条件。
+
+回顾KKT的条件：
+
+$$
+\begin{aligned}
+&\triangledown_w L(w^*,b^*,\xi^*,\alpha^*,\mu^*) = w^*-\sum_{i=1}^N \alpha_i^*y_i x_i=0 \\\\
+&\triangledown_b L(w^*,b^*,\xi^*,\alpha^*,\mu^*) = -\sum_{i=1}^N \alpha_i^*y_i=0 \\\\
+&\triangledown_\xi L(w^*,b^*,\xi^*,\alpha^*,\mu^*) = C-\alpha^*-\mu^*=0 \\\\
+&1-\xi_i^* - y_i(w^*\cdot x_i + b^*) \le 0 , \quad i=1,2,\cdots,N\\\\
+& -\xi_i^* \le 0 , \quad i=1,2,\cdots,N\\\\
+&\alpha_i^* \ge 0, \quad i=1,2,\cdots,N \\\\
+&\mu_i^* \ge 0, \quad i=1,2,\cdots,N \\\\
+&\alpha_i^* (1- \xi_i^* -y_i(w^*\cdot x_i+b^*)) =0, \quad i=1,2,\cdots,N\\\\
+& -\mu_i^*\xi_i^*=0, \quad i=1,2,\cdots,N
+
+\end{aligned}
+$$
+
+注意KKT条件中的松弛互补条件：
+
+$$
+\begin{aligned}
+&\alpha_i^* (1- \xi_i^* -y_i(w^*\cdot x_i+b^*)) =0, \quad i=1,2,\cdots,N\\\\
+& -\mu_i^*\xi_i^*=0, \quad i=1,2,\cdots,N
+\end{aligned}
+$$
+和$\triangledown\xi=0$的条件：
+
+$$
+C-\alpha^*-\mu^*=0
+$$
+
+由此，我们有如下关系：
+
+$$
+
+\begin{aligned}
+\alpha_i=0 \Rightarrow \mu_i>0 \Rightarrow \xi_i=0 \Rightarrow y_i(w\cdot x_i+b) \ge 1 \Rightarrow y_ig(x_i) \ge 1 \\\\
+
+0 < \alpha_i<C \Rightarrow \mu_i>0 \Rightarrow \xi_i=0 \Rightarrow y_i(w\cdot x_i+b) = 1 \Rightarrow y_ig(x_i) = 1 \\\\
+
+\alpha_i=C \Rightarrow \mu_i=0 \Rightarrow \xi_i \ge 0 \Rightarrow y_i(w\cdot x_i+b) \le 1 \Rightarrow y_ig(x_i) \le 1 \\\\
+    
+\end{aligned}
+$$
+其中$g(x_i) = \sum_{j=1}^N \alpha_jy_jK(x_j,x_i)+b$
+
+我们检验是否满足KKT，即检验是否满足条件：：
+
+$$
+
+\begin{aligned}
+\alpha_i=0 \Rightarrow y_ig(x_i) \ge 1 \\\\
+
+0 < \alpha_i<C  \Rightarrow y_ig(x_i) = 1 \\\\
+
+\alpha_i=C  \Rightarrow y_ig(x_i) \le 1 \\\\
+    
+\end{aligned}
+$$
+
+注意，检验是在$\varepsilon$范围内进行的。
+
+第2个变量的选择的标准是希望能使$\alpha_2$有足够大的变化。因为
+
+$$
+\alpha_2^{\mathrm{new,unc}} = \alpha_2^{\mathrm{old}} + \frac{y_2(E_1-E_2)}{\eta }
+$$
+
+和
+
+$$
+\alpha_2^{\mathrm{new}}  = 
+\begin{cases}
+\begin{aligned}
+&H, &\alpha_2^{\mathrm{new,unc}} >H \\\\
+&\alpha_2^{\mathrm{new,unc}} ,&L \le \alpha_2^{\mathrm{new,unc}}  \le H \\\\
+&L,&\alpha_2^{\mathrm{new,unc}}  < L
+\end{aligned}
+\end{cases}
+$$
+所以，$\alpha_2^{\mathrm{new}}$是依赖于$|E_1-E_2|$，为了加快计算速度，一种简单的做法是选择$\alpha_2$，使对应的$|E_1-E_2|$最大。因为$\alpha_1$已定，$E_1$也确定了，如果$E_1$为正，那么选择最小的$E_i$作为$E_2$,如果$E_1$为负，那么选择最大的$E_i$作为$E_2$。为了节省计算时间，将所有$E_i$值保存在一个列表中。
+
+在特殊情况下，如果选择的第二个变量不能够让目标函数有足够的下降，那么可以采用启发式规则，遍历在间隔边界上的支持向量，依次用其对应的变量作为$\alpha_2$,直到目标函数有足够的下降。若找不到合适的$\alpha_2$,则遍历所有样本点，直到目标函数有足够下降，如果都没有足够下降，则放弃选择的第一个变量$\alpha_1$，重新寻找$\alpha_1$
+
+在每次完成两个变量的优化后，都要重新计算阈值$b$和差值$E_i$，当$0<\alpha_1^\mathrm{new}<C$时，由KKT条件可知：
+
+$$
+\sum_{i=1}^N\alpha_iy_iK_{i1}+b=y_1
+$$
+
+得
+
+$$
+b_1^\mathrm{new} = y_1 - \sum_{i=3}^N\alpha_iy_iK_{i1}-\alpha_1^\mathrm{new}y_1K_{11}-\alpha_2^\mathrm{new}y_2K_{21}
+$$
+
+因为
+
+$$
+\begin{aligned}
+    
+E_1 &= g(x_1)-y_1 \\\\
+&= \sum_{i=1}^N \alpha_iy_iK_{i1}+b-y_1 \\\\
+&= \sum_{i=3}^N \alpha_iy_iK_{i1} + \alpha_1^\mathrm{old}y_1K_{11}+\alpha_2^\mathrm{old}y_2K_{21}+b^\mathrm{old}-y_1
+\end{aligned}
+$$
+
+所以
+
+$$
+b_1^{\mathrm{new}} = -E_1-y_1K_{11}(\alpha_1^{\mathrm{new}}-\alpha_1^{\mathrm{old}})-y_2K_{21}(\alpha_2^{\mathrm{new}}-\alpha_2^{\mathrm{old}})+b^{\mathrm{old}}
+$$
+
+同样，如果$0<\alpha_2^\mathrm{new}<C$，那么：
+
+$$
+b_2^{\mathrm{new}} = -E_2-y_1K_{12}(\alpha_1^{\mathrm{new}}-\alpha_1^{\mathrm{old}})-y_2K_{22}(\alpha_2^{\mathrm{new}}-\alpha_2^{\mathrm{old}})+b^{\mathrm{old}}
+$$
+
+如果$\alpha_1^\mathrm{new},\alpha_2^\mathrm{new}$同时满足条件$0<\alpha_i^\mathrm{new}<C,i=1,2$，那么$b_1^\mathrm{new}=b_2^\mathrm{new}$,如果$\alpha_1^\mathrm{new},\alpha_2^\mathrm{new}$是$0$或者$C$,那么$b_1^\mathrm{new}$和$b_2^\mathrm{new}$以及他们之间的数都是符合KKT条件的阈值，这时选择他们的中点作为$b^\mathrm{new}$。
+在每次完成两个变量的优化之后，还必须更新对应的$E_i$值，并将他们保存在列表中，$E_i$值的更新要用到$b^\mathrm{new}$，以及所有支持向量对应的$\alpha_j$:
+
+$$
+E_i^\mathrm{new} = \sum_S y_j\alpha_jK(x_i,x_j)+b^\mathrm{new}-y_i
+$$
+
+其中，$S是所有支持向量$x_j$的集合。
+
+### SMO 算法
+
+输入：训练数据集$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$,其中，$x_i \in \mathcal{X}=\mathrm{R}^n$,$y_i \in \mathcal{Y}=\{-1,+1\}$,$i=1,2,\cdots,N$，精度$\varepsilon$:
+
+输出：近似解$\hat{\alpha}$
+
+1. 取初值$\alpha^{(0)}=0$,令$k=0$;
+2. 选取优化变量$\alpha_1^{(k)},\alpha_2^{(k)}$，解析求解两个变量的最优化问题。
+   
+   先计算
+    
+    $$
+    \alpha_2^{\mathrm{new,unc}} = \alpha_2^{(k)} + \frac{y_2(E_1-E_2)}{K_{11}+K_{22}-2K_{12} }
+    $$
+
+    得到
+
+    $$
+    \alpha_2^{(k+1)}  = 
+    \begin{cases}
+    \begin{aligned}
+    &H, &\alpha_2^{\mathrm{new,unc}} >H \\\\
+    &\alpha_2^{\mathrm{new,unc}} ,&L \le \alpha_2^{\mathrm{new,unc}}  \le H \\\\
+    &L,&\alpha_2^{\mathrm{new,unc}}  < L
+    \end{aligned}
+    \end{cases}
+    $$
+    和
+    $$
+    \alpha_1^{(k+1)} = \alpha_1^{k} + y_1y_2(\alpha_2^{k}- \alpha_2^{(k+1)}) 
+    $$
+    更新
+
+    $$
+    b_1^{(k+1)} = -E_1-y_1K_{11}(\alpha_1^{(k+1)}-\alpha_1^{(k)})-y_2K_{21}(\alpha_2^{(k+1)}-\alpha_2^{(k)})+b^{(k)}
+    $$
+    $$
+    b_2^{(k+1)} = -E_2-y_1K_{12}(\alpha_1^{(k+1)}-\alpha_1^{(k)})-y_2K_{22}(\alpha_2^{(k+1)}-\alpha_2^{(k)})+b^{(k)}
+    $$
+    $$
+    b^{(k+1)} = \frac{b_1^{(k+1)}+b_2^{(k+1)}}{2}
+    $$
+    $$
+    E_1^\mathrm{(k+1)} = \sum_S y_j\alpha_jK(x_1,x_j)+b^{(k+1)}-y_1
+    $$
+    $$
+    E_2^\mathrm{(k+1)} = \sum_S y_j\alpha_jK(x_2,x_j)+b^{(k+1)}-y_2
+    $$
+    
+3. 若在精度$\varepsilon$范围内满足停机条件
+
+    $$
+    \sum_{i=1}^N\alpha_iy_i=0 \\\\
+
+    0 \le \alpha_i \le C,i=1,2,\cdots,N \\\\
+    y_i\cdot g(x_i)=
+    \begin{cases}
+        \begin{aligned}
+            \ge 1, & \{x_i|\alpha_i=0\} \\\\
+            =1, & \{x_i|0<\alpha_i <C\} \\\\
+            \le 1, & \{x_i|\alpha_i=C\} 
+        \end{aligned}
+    \end{cases}
+    $$
+    其中，$g(x_i)=\sum_{i=1}^N \alpha_j y_j K(x_j,x_i)+b$
+
+    则转（4）：否则令$k=k+1$，转（2）
+
+4. 取 $\hat{\alpha} = \alpha^{(k+1)}$
+
+## SVR
+
+## scikit-learn SVM 算法库
+
+## 例子
 
 
 ---
-北风PPT案例，
-自己手推案例，
-
-待整理
-
-刘建平博客
-周志华《机器学习》
-李航《统计学习方法》
+* 李航《统计学习方法》
+* 课件
+* 周志华《机器学习》
+* 刘建平博客
