@@ -1,4 +1,4 @@
-# 使用深度学习进行答案选择：一个研究及开放性任务（翻译）
+# 【译】使用深度学习进行答案选择：一个研究及开放性任务
 
 * 作者：Zhenzhong Lan, Mingda Chen, Sebastian Goodman, Kevin Gimpel, Piyush Sharma, Radu Soricut
 * 论文：《ALBERT: A Lite BERT for Self-supervised Learning of Language Representations》
