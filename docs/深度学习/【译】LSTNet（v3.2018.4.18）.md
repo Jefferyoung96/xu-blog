@@ -1,4 +1,4 @@
-# 【译】用深度神经网络建模长短期时间模式
+# 【译】用深度神经网络建模长短期时间模式（v3,2018.4.18）
 
 * 作者：Guokun Lai, Wei-Cheng Chang, Yiming Yang, Hanxiao Liu
 * 论文：《Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks》
