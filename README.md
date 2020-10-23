@@ -1,7 +1,7 @@
 # 我的博客
 
 记录自己的学习和思考内容
-
+:cn:
 **注意事项**： 
  
 内容中有数学公式，因为github不支持LaTex，这里推荐一个在Chrome中的解决方案，安装插件[GitHub with MathJax](https://chrome.google.com/webstore/detail/github-with-mathjax/ioemnmodlmafdkllaclgeombjnmnbima)即可在Chrome中正常查看数学公式，该插件对公式换行符号```\\```解析为单个```\```，导致公式换行有问题，所以文件里的换行都用```\\\\```表示换行。
